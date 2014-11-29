@@ -3,8 +3,8 @@
 Contributors:		machouinard
 Tags: 				weather, noaa, aviation, metar, pireps
 Requires at least: 	3.8.1
-Tested up to:      	4.0
-Stable tag:        	0.3.1
+Tested up to:      	4.0.1
+Stable tag:        	0.3.3
 License:           	GPLv2 or later
 License URI:       	http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,11 +29,16 @@ Code and support available at [GitHub](https://github.com/machouinard/aviation-w
 1. Upload the entire `/aviation-weather-from-noaa` directory to the `/wp-content/plugins/` directory.
 2. Activate Aviation Weather from NOAA through the 'Plugins' menu in WordPress.
 
-= If you use WP_CLI =
+= WP_CLI Installation =
     wp plugin install aviation-weather-from-noaa --activate
 
 
 == Changelog ==
+
+= 0.3.3 =
+* Fix code that was preventing TAF from displaying
+* Fix transients not being deleted on update
+* Add check for USA, Canada and Australia if 3 characters entered for ICAO
 
 = 0.3.1 =
 * Refactor per WordPress coding standards
@@ -64,5 +69,6 @@ Code and support available at [GitHub](https://github.com/machouinard/aviation-w
 
 == Upgrade Notice ==
 
-= 0.3.1 =
-Made better.  More WordPressy
+= 0.3.3 =
+Fix faulty code that was preventing TAF from displaying
+Misc. tweaks
