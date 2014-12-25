@@ -3,7 +3,7 @@
 Plugin Name: Aviation Weather from NOAA
 Plugin URI:  https://github.com/machouinard/aviation-weather-from-noaa
 Description: Aviation weather data from NOAA's Aviation Digital Data Service (ADDS)
-Version:     0.3.4a
+Version:     0.3.5
 Author:      Mark Chouinard
 Author URI:  http://machouinard.com
 License:     GPLv2+
@@ -36,7 +36,7 @@ Domain Path: /languages
  */
 
 // Useful global constants
-define( 'MACHOUINARD_ADDS_VERSION', '0.3.4' );
+define( 'MACHOUINARD_ADDS_VERSION', '0.3.5' );
 define( 'MACHOUINARD_ADDS_URL', plugin_dir_url( __FILE__ ) );
 define( 'MACHOUINARD_ADDS_PATH', dirname( __FILE__ ) . '/' );
 
@@ -127,9 +127,9 @@ function machouinard_adds_weather_shortcode( $atts ) {
 
 	$icao        = machouinard_adds_weather_widget::clean_icao( $atts['apts'] );
 	$hours       = absint( $atts['hours'] ) <= 6 ? absint( $atts['hours'] ) : 6;
-	$show_taf    = intval( $atts['show_taf'] );
-	$show_pireps = intval( $atts['show_pireps'] );
-	$radial_dist = intval( $atts['radial_dist'] );
+	$show_taf    = (bool) $atts['show_taf'];
+	$show_pireps = (bool) $atts['show_pireps'];
+	$radial_dist = absint( $atts['radial_dist'] );
 	$title       = $atts['title'];
 
 	$data = '';
@@ -210,9 +210,9 @@ class Machouinard_Adds_Weather_Widget extends WP_Widget {
 
 		$icao        = $instance['icao'];
 		$hours       = absint( $instance['hours'] );
-		$show_taf    = boolval( $instance['show_taf'] );
-		$show_pireps = boolval( $instance['show_pireps'] );
-		$radial_dist = intval( $instance['radial_dist'] );
+		$show_taf    = (bool) $instance['show_taf'];
+		$show_pireps = (bool) $instance['show_pireps'];
+		$radial_dist = absint( $instance['radial_dist'] );
 		$title       = sanitize_text_field( $instance['title'] );
 		?>
 		<label
@@ -261,10 +261,10 @@ class Machouinard_Adds_Weather_Widget extends WP_Widget {
 	function update( $new_instance, $old_instance ) {
 		$instance                = $old_instance;
 		$instance['icao']        = $this->clean_icao( $new_instance['icao'] );
-		$instance['hours']       = intval( $new_instance['hours'] );
-		$instance['show_taf']    = boolval( $new_instance['show_taf'] );
-		$instance['show_pireps'] = boolval( $new_instance['show_pireps'] );
-		$instance['radial_dist'] = intval( $new_instance['radial_dist'] );
+		$instance['hours']       = absint( $new_instance['hours'] );
+		$instance['show_taf']    = (bool) $new_instance['show_taf'];
+		$instance['show_pireps'] = (bool) $new_instance['show_pireps'];
+		$instance['radial_dist'] = absint( $new_instance['radial_dist'] );
 		$instance['title']       = sanitize_text_field( $new_instance['title'] );
 		if ( ! $this->get_apt_info( $instance['icao'] ) ) {
 			$instance['icao'] = '';
@@ -294,8 +294,8 @@ class Machouinard_Adds_Weather_Widget extends WP_Widget {
 		$icao        = empty( $instance['icao'] ) ? '' : self::clean_icao( $instance['icao'] );
 		$hours       = empty( $instance['hours'] ) ? '' : absint( $instance['hours'] );
 		$radial_dist = empty( $instance['radial_dist'] ) ? '' : absint( $instance['radial_dist'] );
-		$show_taf    = isset( $instance['show_taf'] ) ? boolval( $instance['show_taf'] ) : false;
-		$show_pireps = isset( $instance['show_pireps'] ) ? boolval( $instance['show_pireps'] ) : false;
+		$show_taf    = isset( $instance['show_taf'] ) ? (bool) $instance['show_taf'] : false;
+		$show_pireps = isset( $instance['show_pireps'] ) ? (bool) $instance['show_pireps'] : false;
 		$title       = empty( $instance['title'] ) ? sprintf( _n( 'Available data for %s from the past hour', 'Available data for %s from the past %d hours', $hours, 'machouinard_adds' ), $icao, $hours ) : $instance['title'];
 		$hours       = apply_filters( 'hours_before_now', $hours );
 		$radial_dist = apply_filters( 'radial_dist', $radial_dist );
@@ -355,9 +355,9 @@ class Machouinard_Adds_Weather_Widget extends WP_Widget {
 			$metar_url = sprintf( 'http://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&stationString=%s&hoursBeforeNow=%d', $icao, absint( $hours ) );
 			$tafs_url  = sprintf( 'http://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=tafs&requestType=retrieve&format=xml&stationString=%s&hoursBeforeNow=%d', $icao, absint( $hours ) );
 
-			$xml['metar'] = self::machoui_load_xml( esc_url_raw( $metar_url ) );
+			$xml['metar'] = self::load_xml( esc_url_raw( $metar_url ) );
 
-			$xml['taf'] = self::machoui_load_xml( esc_url_raw( $tafs_url ) );
+			$xml['taf'] = self::load_xml( esc_url_raw( $tafs_url ) );
 
 			// Store the METAR for display
 			$count = count( $xml['metar']->data->METAR );
@@ -393,7 +393,7 @@ class Machouinard_Adds_Weather_Widget extends WP_Widget {
 		if ( ! get_transient( 'noaa_pireps_' . $icao ) ) {
 			$info      = self::get_apt_info( $icao );
 			$pirep_url = sprintf( 'http://aviationweather.gov/adds/dataserver_current/httpparam?dataSource=aircraftreports&requestType=retrieve&format=xml&radialDistance=%d;%f,%f&hoursBeforeNow=%d', $radial_dist, $info['lon'], $info['lat'], $hours );
-			$xml       = self::machoui_load_xml( $pirep_url );
+			$xml       = self::load_xml( $pirep_url );
 			$pireps    = array();
 			for ( $i = 0; $i < count( $xml->data->AircraftReport ); $i ++ ) {
 				$pireps[] = (string) $xml->data->AircraftReport[ $i ]->raw_text;
@@ -415,11 +415,11 @@ class Machouinard_Adds_Weather_Widget extends WP_Widget {
 	 * @return array  $info | false     array containing lat & lon for provided airport or false if ICAO is not alpha-num or 4 chars
 	 */
 	public static function get_apt_info( $icao ) {
-		if ( ! preg_match( '~^[A-Za-z]{4,4}$~', $icao, $matches ) ) {
+		if ( ! preg_match( '~^[A-Za-z0-9]{4,4}$~', $icao, $matches ) ) {
 			return false;
 		}
 		$url = sprintf( 'http://aviationweather.gov/adds/dataserver_current/httpparam?dataSource=stations&requestType=retrieve&format=xml&stationString=%s', $icao );
-		$xml = self::machoui_load_xml( esc_url_raw( $url ) );
+		$xml = self::load_xml( esc_url_raw( $url ) );
 		if ( isset( $xml->data->Station ) ) {
 			$info['station_id'] = $xml->data->Station->station_id;
 			$info['lat']        = $xml->data->Station->latitude;
@@ -433,7 +433,7 @@ class Machouinard_Adds_Weather_Widget extends WP_Widget {
 	}
 
 	// Retrieve XML from URL
-	private static function machoui_load_xml( $url ) {
+	private static function load_xml( $url ) {
 		$xml_raw = wp_remote_get( $url );
 		$body    = wp_remote_retrieve_body( $xml_raw );
 
