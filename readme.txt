@@ -2,9 +2,9 @@
 
 Contributors:		machouinard
 Tags: 				weather, noaa, aviation, metar, pireps
-Requires at least: 	3.8.1
-Tested up to:      	4.2.2
-Stable tag:        	0.3.5
+Requires at least: 	3.8
+Tested up to:      	4.2.4
+Stable tag:        	trunk
 License:           	GPLv2 or later
 License URI:       	http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,9 +17,16 @@ Aviation weather data from NOAA's Aviation Digital Data Service (ADDS)
 * Create multiple instances using either widget or shortcode
 
 = Shortcode Usage: ( shown with defaults ) =
-    [adds_weather apts='KSMF' hours=2 show_taf=1 show_pireps=1 radial_dist=30 title='']
+    [adds_weather apts='KSMF' hours=2 show_metar=1 show_taf=1 show_pireps=1 radial_dist=30 title='']
 
 Data is cached for 15 minutes using the WordPress Transients API.
+
+= Included Filter Hooks: =
+* adds_shortcode_title_wrap: Tag used for shortcode title.  Defaults to "h2".
+* adds_shortcode_wrapper: Class of the div enclosing shortcode output.
+* adds_kses: Array of permitted HTML tags.
+* adds_custom_css: URL of a user-supplied stylesheet.  Supplying a stylesheet in theme's directory ( 'css/aviation_weather_from_noaa.css' ) will also override stylesheet.
+* adds_widget_wrapper: Class of the div enclosing the widget
 
 Code and support available at [GitHub](https://github.com/machouinard/aviation-weather-from-noaa "GitHub Repo")
 == Installation ==
@@ -34,6 +41,17 @@ Code and support available at [GitHub](https://github.com/machouinard/aviation-w
 
 
 == Changelog ==
+= 0.3.8 =
+* Add ability to not display Metar
+* Add check for PHP version 3.3
+
+= 0.3.7 =
+* Add styling
+* Add hooks to filter styling
+* Add option for theme supplied stylesheet
+
+= 0.3.6 =
+* Add unit tests
 
 = 0.3.5 =
 * Cast values as bool instead of using boolval(), which requires PHP >= 5.5
@@ -73,7 +91,3 @@ Code and support available at [GitHub](https://github.com/machouinard/aviation-w
 = 0.1.0 =
 * First release
 
-== Upgrade Notice ==
-
-= 0.3.5 =
-Allow for PHP versions < 5.5
